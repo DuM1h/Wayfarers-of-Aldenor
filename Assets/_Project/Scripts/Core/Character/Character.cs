@@ -37,10 +37,10 @@ public class Character
         if (targetNode == null || !targetNode.IsWalkable) return false;
 
         int distance = grid.GetDistance(grid.GetNode(Position), grid.GetNode(newPosition));
-        if (distance < 0 || distance > AvailableMovementPoints) { return false; }
+        if (distance != 1) return false;
 
         Position = newPosition;
-        AvailableMovementPoints -= distance;
+        AvailableMovementPoints -= 1;
 
         return true;
     }

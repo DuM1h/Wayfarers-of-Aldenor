@@ -59,7 +59,12 @@ public class TurnManager
     public void EnterCombat()
     {
         CurrentState = TurnState.Combat;
-        _playerCharacter.ResetTurn();
+
+        foreach (var character in _allCharacters)
+        {
+            character.ResetTurn();
+        }
+        Debug.Log("Почався покроковий бій!");
     }
 
     public void ForceEndTurn()

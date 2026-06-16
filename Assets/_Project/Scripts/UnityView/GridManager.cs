@@ -80,6 +80,12 @@ public class GridManager : MonoBehaviour
         );
     }
 
+    public Vector3 GetCellCenterWorld(Vector2Int logicalCoords)
+    {
+        Vector3Int unityCoords = LogicalToUnityCoords(logicalCoords);
+        return new Vector3(unityCoords.x + 0.5f, unityCoords.y + 0.5f, 0f);
+    }
+
     void OnDrawGizmos()
     {
         if (_gameGrid == null) return;
