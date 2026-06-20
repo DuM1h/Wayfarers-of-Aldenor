@@ -11,13 +11,16 @@ public class TurnManager
 {
     public TurnState CurrentState { get; private set; }
 
+    private GameGrid _gameGrid;
+
     private List<Character> _allCharacters = new List<Character>();
     private Character _playerCharacter;
     private int _currentCharacterIndex = 0;
 
-    public TurnManager(Character playerCharacter)
+    public TurnManager(Character playerCharacter, GameGrid gameGrid)
     {
         _playerCharacter = playerCharacter;
+        _gameGrid = gameGrid;
         _allCharacters.Add(playerCharacter);
         CurrentState = TurnState.FreeExploration;
     }
@@ -102,6 +105,35 @@ public class TurnManager
         if (activeChar.HasExhaustedTurn())
         {
             AdvanceToNextCharacter();
+        }
+    }
+
+    public void CheckForCombatTriggers()
+    {
+        foreach (var character in _allCharacters)
+        {
+            if (!character.IsDead && character is EnemyBrain enemy)
+            {
+                if (enemy.TryDetectPlayer(_gameGrid))
+                {
+                    EnterCombat();
+                    Debug.Log("БІЙ ПОЧАТО!");
+                    break;
+                }
+            }
+        }
+    }
+
+    public void Update()
+    {
+        if (CurrentState == TurnState.Combat)
+        {
+            Character activeChar = _allCharacters[_currentCharacterIndex];
+            if (activeChar is EnemyBrain enemy)
+            {
+                enemy.ProcessTurn( _gameGrid);
+                CheckAndAdvanceCombatTurn();
+            }
         }
     }
 }

@@ -59,6 +59,14 @@ public class GridManager : MonoBehaviour
                         node.IsWalkable = false;
                     }
                 }
+                else
+                {
+                    Node node = _gameGrid.GetNode(logicalCoords);
+                    if (node != null && node.OccupyingCharacter != null)
+                    {
+                        node.IsWalkable = true;
+                    }
+                }
             }
         }
     }
@@ -97,7 +105,18 @@ public class GridManager : MonoBehaviour
                 Node node = _gameGrid.GetNode(new Vector2Int(x, y));
                 if (node == null) continue;
 
-                Gizmos.color = node.IsWalkable ? Color.gray : Color.red;
+                if (!node.IsWalkable)
+                {
+                    Gizmos.color = Color.red;
+                }
+                else if (node.IsOccupied)
+                {
+                    Gizmos.color = Color.yellow;
+                }
+                else
+                {
+                    Gizmos.color = Color.gray;
+                }
 
                 Vector3Int unityGridPos = LogicalToUnityCoords(new Vector2Int(x, y));
                 Vector3 cellCenter = new Vector3(unityGridPos.x + 0.5f, unityGridPos.y + 0.5f, 0);
@@ -110,5 +129,15 @@ public class GridManager : MonoBehaviour
     public GameGrid GetGameGrid()
     {
         return _gameGrid;
+    }
+
+    public void UpdateNodeOccupancy(Vector2Int logicalCoords, Character character)
+    {
+        Node node = _gameGrid.GetNode(logicalCoords);
+        if (node != null)
+        {
+            node.IsOccupied = character != null;
+            node.OccupyingCharacter = character;
+        }
     }
 }

@@ -5,6 +5,8 @@ public class Node
 {
     public Vector2Int Coordinates { get; private set; }
     public bool IsWalkable { get; set; }
+    public bool IsOccupied { get; set; } = false;
+    public Character OccupyingCharacter { get; set; } = null;
     public Node(Vector2Int coordinates, bool isWalkable)
     {
         Coordinates = coordinates;
