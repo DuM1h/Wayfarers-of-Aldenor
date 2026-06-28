@@ -40,7 +40,7 @@ public class CharacterView : MonoBehaviour
 
     protected Queue<Vector2Int> _currentPath = new Queue<Vector2Int>();
 
-    public void Initialize(Character character, TurnManager turnManager, GridManager gridManager)
+    public virtual void Initialize(Character character, TurnManager turnManager, GridManager gridManager)
     {
         _logicalCharacter = character;
         _turnManager = turnManager;
@@ -51,6 +51,9 @@ public class CharacterView : MonoBehaviour
         transform.position = _gridManager.GetCellCenterWorld(_logicalCharacter.Position);
 
         _targetGlobalPosition = transform.position;
+        _logicalCharacter.OnMoved += ProcessStep;
+        _logicalCharacter.OnDamageTaken += HurtAnimation;
+        _logicalCharacter.OnDied += HandleDeath;
     }
 
     protected virtual void Update()
@@ -66,15 +69,16 @@ public class CharacterView : MonoBehaviour
         if (_currentPath.Count > 0)
         {
             Vector2Int nextStep = _currentPath.Dequeue();
-            ProcessStep(nextStep);
+            ProcessStep(_logicalCharacter.Position ,nextStep);
             return;
         }
     }
 
-    public virtual void ProcessStep(Vector2Int targetGridPos)
+    public virtual void ProcessStep(Vector2Int oldPos, Vector2Int newPos)
     {
         GameGrid grid = _gridManager.GetGameGrid();
-        Vector2Int v = targetGridPos - _logicalCharacter.Position;
+
+        Vector2Int v = newPos - oldPos;
 
         if (v == Vector2Int.right) _currentFacingDirection = CharacterFacingDirection.Right;
         else if (v == Vector2Int.left) _currentFacingDirection = CharacterFacingDirection.Left;
@@ -83,18 +87,11 @@ public class CharacterView : MonoBehaviour
 
         Rotate();
 
-        if (_logicalCharacter.TryMove(targetGridPos, grid))
-        {
-            _currentAnimationState = CharacterAnimationState.Walking;
+        _currentAnimationState = CharacterAnimationState.Walking;
 
-            _targetGlobalPosition = _gridManager.GetCellCenterWorld(_logicalCharacter.Position);
-            _isMovingSmoothly = true;
-            _logicalCharacter.IsMovingVisually = true;
-        }
-        else
-        {
-            _currentPath.Clear();
-        }
+        _targetGlobalPosition = _gridManager.GetCellCenterWorld(newPos);
+        _isMovingSmoothly = true;
+        _logicalCharacter.IsMovingVisually = true;
     }
 
     protected void HandleVisualMovement()
@@ -115,16 +112,6 @@ public class CharacterView : MonoBehaviour
         _spriteRenderer.flipX = _currentFacingDirection == CharacterFacingDirection.Left;
     }
 
-
-    public void TryToMove(Vector2Int direction)
-    {
-        if (_isMovingSmoothly) return;
-
-        _currentPath.Clear();
-        Vector2Int targetGridPos = _logicalCharacter.Position + direction;
-        ProcessStep(targetGridPos);
-    }
-
     protected void HandleAnimation()
     {
         if (_animator == null) return;
@@ -133,5 +120,24 @@ public class CharacterView : MonoBehaviour
         _animator.SetBool("IsFacingDown", _currentFacingDirection == CharacterFacingDirection.Down);
         _animator.SetBool("Walking", _currentAnimationState == CharacterAnimationState.Walking);
         _animator.SetBool("Idle", _currentAnimationState == CharacterAnimationState.Idle);
+    }
+
+    protected void HurtAnimation()
+    {
+        if (_animator == null) return;
+        _animator.SetTrigger("DamageTaken");
+    }
+
+    protected void HandleDeath()
+    {
+        if (_animator == null) return;
+        _animator.SetBool("Dead", true);
+    }
+
+    private void OnDestroy()
+    {
+        _logicalCharacter.OnMoved -= ProcessStep;
+        _logicalCharacter.OnDamageTaken -= HurtAnimation;
+        _logicalCharacter.OnDied -= HandleDeath;
     }
 }

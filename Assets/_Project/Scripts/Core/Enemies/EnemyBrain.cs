@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,12 +8,11 @@ public class EnemyBrain : Character
     public bool IsAggroed { get; private set; }
 
     private Character _playerCharacter;
-    private EnemyView _enemyView;
 
     private Queue<Vector2Int> _currentPath = new Queue<Vector2Int>();
     public IReadOnlyCollection<Vector2Int> CurrentPath => _currentPath;
-    public EnemyBrain(string name, Vector2Int initialPosition, int maxActionPoints, int maxBonusActions, int maxMovementPoints, int aggroRadius, Character playerCharacter)
-        : base(name, initialPosition, maxActionPoints, maxBonusActions, maxMovementPoints)
+    public EnemyBrain(string name, Vector2Int initialPosition, int maxHealth, int maxActionPoints, int maxBonusActions, int maxMovementPoints, int aggroRadius, Character playerCharacter)
+        : base(name, initialPosition, maxHealth, maxActionPoints, maxBonusActions, maxMovementPoints)
     {
         AggroRadius = aggroRadius;
         _playerCharacter = playerCharacter;
@@ -28,17 +28,13 @@ public class EnemyBrain : Character
         {
             if (_currentPath == null || _currentPath.Count == 0)
             {
-                _currentPath = Pathfinder.FindPath(Position, _playerCharacter.Position, grid);
+                _currentPath = Pathfinder.FindPath(Position, _playerCharacter.Position, grid, this);
             }
 
             if (_currentPath.Count > 0)
             {
                 Vector2Int nextPosition = _currentPath.Dequeue();
-                if (grid.GetNode(nextPosition).IsWalkable)
-                {
-                    _enemyView.ProcessStep(nextPosition);
-                }
-                else
+                if (!TryMove(nextPosition, grid))
                 {
                     _currentPath.Clear();
                 }
@@ -51,9 +47,9 @@ public class EnemyBrain : Character
         }
         else if (distanceToPlayer == 1)
         {
-            // Attack logic
-            // Обов'язково скидай AP після атаки, щоб передати хід!
-            AvailableActionPoints = 0;
+            Attack(_playerCharacter, grid);
+            AvailableMovementPoints = 0;
+            AvailableBonusActions = 0;
         }
     }
 
@@ -67,11 +63,6 @@ public class EnemyBrain : Character
             return true;
         }
         return false;
-    }
-
-    public void SetEnemyView(EnemyView enemyView)
-    {
-        _enemyView = enemyView;
     }
 
     public override void ResetTurn()

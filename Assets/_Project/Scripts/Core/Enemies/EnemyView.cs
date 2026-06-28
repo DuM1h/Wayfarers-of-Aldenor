@@ -1,7 +1,35 @@
+using System.Diagnostics;
 using UnityEngine;
 
 public class EnemyView : CharacterView
 {
+    [Header("Stats")]
+    [SerializeField] private int mp;
+    [SerializeField] private int ap;
+    [SerializeField] private int bp;
+
+    protected override void Update()
+    {
+        mp = _logicalCharacter.AvailableMovementPoints;
+        ap = _logicalCharacter.AvailableActionPoints;
+        bp = _logicalCharacter.AvailableBonusActions;
+
+        HandleAnimation();
+
+        if (_logicalCharacter == null) return;
+
+        HandleVisualMovement();
+
+        if (_isMovingSmoothly) return;
+
+        if (_currentPath.Count > 0)
+        {
+            Vector2Int nextStep = _currentPath.Dequeue();
+            ProcessStep(_logicalCharacter.Position ,nextStep);
+            return;
+        }
+    }
+
     private void OnDrawGizmos()
     {
         // Перевіряємо, чи ініціалізований наш персонаж і сітка
@@ -32,4 +60,6 @@ public class EnemyView : CharacterView
             }
         }
     }
+
+    
 }

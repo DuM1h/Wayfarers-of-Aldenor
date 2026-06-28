@@ -7,7 +7,7 @@ public class PlayerControllerView : CharacterView
 
     public void SetPath(Vector2Int targetGridPos)
     {
-        _currentPath = Pathfinder.FindPath(_logicalCharacter.Position, targetGridPos, _gridManager.GetGameGrid());
+        _currentPath = Pathfinder.FindPath(_logicalCharacter.Position, targetGridPos, _gridManager.GetGameGrid(), _logicalCharacter);
     }
 
     public void UpdatePathPreview(Vector2Int targetGridPos)
@@ -24,7 +24,7 @@ public class PlayerControllerView : CharacterView
             return;
         }
 
-        Queue<Vector2Int> path = Pathfinder.FindPath(_logicalCharacter.Position, targetGridPos, _gridManager.GetGameGrid());
+        Queue<Vector2Int> path = Pathfinder.FindPath(_logicalCharacter.Position, targetGridPos, _gridManager.GetGameGrid(), _logicalCharacter);
 
         if (path.Count == 0)
         {
@@ -52,26 +52,15 @@ public class PlayerControllerView : CharacterView
         }
     }
 
-    public override void ProcessStep(Vector2Int targetGridPos)
+    public void ProcessPathStep(Vector2Int targetGridPos)
     {
         GameGrid grid = _gridManager.GetGameGrid();
-        Vector2Int v = targetGridPos - _logicalCharacter.Position;
 
-        if (v == Vector2Int.right) _currentFacingDirection = CharacterFacingDirection.Right;
-        else if (v == Vector2Int.left) _currentFacingDirection = CharacterFacingDirection.Left;
-        else if (v == Vector2Int.up) _currentFacingDirection = CharacterFacingDirection.Up;
-        else if (v == Vector2Int.down) _currentFacingDirection = CharacterFacingDirection.Down;
-
-        Rotate();
-
+        // 1. ЛОГІКА: Пробуємо зробити крок
+        // (Якщо вийде, Character.cs сам викличе OnMoved, і базовий CharacterView запустить анімацію!)
         if (_logicalCharacter.TryMove(targetGridPos, grid))
         {
-            _currentAnimationState = CharacterAnimationState.Walking;
-
-            _targetGlobalPosition = _gridManager.GetCellCenterWorld(_logicalCharacter.Position);
-            _isMovingSmoothly = true;
-            _logicalCharacter.IsMovingVisually = true;
-
+            // 2. МЕНЕДЖМЕНТ ГРИ: Оновлюємо стани (TurnManager)
             switch (_turnManager.CurrentState)
             {
                 case TurnState.FreeExploration:
@@ -85,8 +74,52 @@ public class PlayerControllerView : CharacterView
         }
         else
         {
+            // Якщо TryMove повернув false (немає MP або зайнято)
             _currentPath.Clear();
             Debug.Log($"Шлях заблоковано або недостатньо Очок Руху в бою!");
         }
+    }
+
+    protected override void Update()
+    {
+        HandleAnimation();
+
+        if (_logicalCharacter == null) return;
+
+        HandleVisualMovement();
+
+        if (_isMovingSmoothly) return;
+
+        if (_currentPath.Count > 0)
+        {
+            Vector2Int nextStep = _currentPath.Dequeue();
+            ProcessPathStep(nextStep);
+            return;
+        }
+    }
+
+    public void TryToMove(Vector2Int direction)
+    {
+        if (_isMovingSmoothly) return;
+
+        _currentPath.Clear();
+        Vector2Int targetGridPos = _logicalCharacter.Position + direction;
+        ProcessPathStep(targetGridPos);
+    }
+
+    public Character GetPlayerCharacter()
+    {
+        return _logicalCharacter;
+    }
+
+    public void HandleAttackInput(Character character)
+    {
+        GameGrid grid = _gridManager.GetGameGrid();
+        int distance = grid.GetDistance(grid.GetNode(_logicalCharacter.Position), grid.GetNode(character.Position));
+
+        if (distance > 1)
+            Debug.Log("Ціль занадто далеко!");
+        if (distance == 1)
+            _logicalCharacter.Attack(character, grid);
     }
 }

@@ -54,11 +54,19 @@ public class PlayerInput : MonoBehaviour
             _lastHoveredGridPos = targetGridPos;
             _controllerView.UpdatePathPreview(targetGridPos);
         }
-
+        
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            _controllerView.ClearPathPreview();
-            _controllerView.SetPath(targetGridPos);
+            var targetNode = gridManager.GameGrid.GetNode(targetGridPos);
+            if (targetNode.OccupyingCharacter != null && targetNode.OccupyingCharacter != _controllerView.GetPlayerCharacter())
+            {
+                _controllerView.HandleAttackInput(targetNode.OccupyingCharacter);
+            }
+            else
+            {
+                _controllerView.ClearPathPreview();
+                _controllerView.SetPath(targetGridPos);
+            }
         }
     }
 }

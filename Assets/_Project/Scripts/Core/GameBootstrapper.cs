@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,6 +7,7 @@ public class GameBootstrapper : MonoBehaviour
     [Header("Scene References")]
     [SerializeField] private GridManager _gridManager;
     [SerializeField] private PlayerControllerView _playerView;
+    [SerializeField] private CameraDirector _cameraDirector;
 
     [Header("Test Settings")]
     [SerializeField] private Vector2Int _playerStartPosition = new Vector2Int(0, 0);
@@ -14,6 +16,8 @@ public class GameBootstrapper : MonoBehaviour
     private Character _playerCharacter;
     private List<EnemyBrain> _enemyCharacterList = new List<EnemyBrain>();
     private TurnManager _turnManager;
+
+    public static event Action OnGameStart;
 
     private void Start()
     {
@@ -25,11 +29,11 @@ public class GameBootstrapper : MonoBehaviour
 
         // 1. Ініціалізуємо логічного персонажа
         // Параметри: Ім'я, Позиція, MaxAP (1), MaxBonus (1), MaxMovement (10)
-        _playerCharacter = new Character("Hero", _playerStartPosition, 0, 0, 10);
+        _playerCharacter = new Character("Hero", _playerStartPosition, 100, 1, 0, 10);
 
         // 2. Ініціалізуємо логічного ворога
         // Параметри: Ім'я, Позиція, MaxAP (1), MaxBonus (1), MaxMovement (5), Персонаж гравця
-        _enemyCharacterList.Add(new("Enemy", _enemyStartPosition, 1, 1, 5, 5, _playerCharacter));
+        _enemyCharacterList.Add(new("Enemy", _enemyStartPosition, 50, 1, 1, 5, 5, _playerCharacter));
 
         // 3. Ініціалізуємо логічний менеджер ходів
         _turnManager = new TurnManager(_playerCharacter, _gridManager.GetGameGrid());
@@ -43,21 +47,24 @@ public class GameBootstrapper : MonoBehaviour
 
         // 4. Зв'язуємо Логіку та Візуал (Передаємо POCO класи у MonoBehaviour)
         _playerView.Initialize(_playerCharacter, _turnManager, _gridManager);
+        _cameraDirector.RegisterCharacter(_playerCharacter, _playerView.GetComponent<Transform>());
 
         EnemyView[] enemyViews = FindObjectsByType<EnemyView>();
         for (int i = 0; i < enemyViews.Length; i++)
         {
             enemyViews[i].Initialize(_enemyCharacterList[i], _turnManager, _gridManager);
-            _enemyCharacterList[i].SetEnemyView(enemyViews[i]);
+            _cameraDirector.RegisterCharacter(_enemyCharacterList[i], enemyViews[i].GetComponent<Transform>());
             Debug.Log($"Ворог №{i+1} ініціалізований!");
         }
 
         Debug.Log("<color=green>Системи успішно ініціалізовані! Можна тестувати рух.</color>");
-
+        OnGameStart?.Invoke();
     }
 
     private void Update()
     {
-        _turnManager.Update();
+        _turnManager.Update(Time.deltaTime);
     }
+
+    public TurnManager GetTurnManager() { return _turnManager; }
 }

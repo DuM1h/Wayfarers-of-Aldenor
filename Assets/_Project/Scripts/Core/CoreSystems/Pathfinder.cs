@@ -16,8 +16,10 @@ public static class Pathfinder
         }
     }
 
-    public static Queue<Vector2Int> FindPath(Vector2Int start, Vector2Int target, GameGrid grid)
+    public static Queue<Vector2Int> FindPath(Vector2Int start, Vector2Int target, GameGrid grid, Character character)
     {
+        bool isEnemy = character is EnemyBrain;
+
         Queue<Vector2Int> path = new Queue<Vector2Int>();
 
         var targetNode = grid.GetNode(target);
@@ -55,7 +57,7 @@ public static class Pathfinder
             {
                 Vector2Int neighborPos = currentNode.Position + direction;
 
-                if (closedSet.Contains(neighborPos) || !grid.IsInBounds(neighborPos) || !grid.GetNode(neighborPos).IsWalkable)
+                if (closedSet.Contains(neighborPos) || !grid.IsInBounds(neighborPos) || !grid.GetNode(neighborPos).IsWalkable || (grid.GetNode(neighborPos).IsOccupied && !isEnemy))
                     continue;
 
                 int tentativeGCost = currentNode.GCost + 1;

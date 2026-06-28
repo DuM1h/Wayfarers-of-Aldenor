@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,6 +17,10 @@ public class TurnManager
     private List<Character> _allCharacters = new List<Character>();
     private Character _playerCharacter;
     private int _currentCharacterIndex = 0;
+
+    private float _transitionTimer = 1.5f;
+
+    public event Action<Character> OnTurnStarted;
 
     public TurnManager(Character playerCharacter, GameGrid gameGrid)
     {
@@ -90,6 +95,8 @@ public class TurnManager
         }
 
         nextChar.ResetTurn();
+        _transitionTimer = 1.5f;
+        OnTurnStarted?.Invoke(nextChar);
         Debug.Log($"Хід переходить до: {nextChar.Name}");
     }
 
@@ -124,16 +131,25 @@ public class TurnManager
         }
     }
 
-    public void Update()
+    public void Update(float deltaTime)
     {
-        if (CurrentState == TurnState.Combat)
+        if (CurrentState != TurnState.Combat) return;
+
+        if (_transitionTimer > 0)
         {
-            Character activeChar = _allCharacters[_currentCharacterIndex];
-            if (activeChar is EnemyBrain enemy)
-            {
-                enemy.ProcessTurn( _gameGrid);
-                CheckAndAdvanceCombatTurn();
-            }
+            _transitionTimer -= deltaTime;
+            return;
         }
+
+        Character activeChar = _allCharacters[_currentCharacterIndex];
+
+        if (activeChar.IsMovingVisually) return;
+
+        if (activeChar is EnemyBrain enemy)
+        {
+            enemy.ProcessTurn(_gameGrid);
+        }
+
+        CheckAndAdvanceCombatTurn();
     }
 }
