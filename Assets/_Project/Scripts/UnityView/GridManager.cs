@@ -15,17 +15,25 @@ public class GridManager : MonoBehaviour
 
     private void Awake()
     {
+        if (!ValidateReferences()) 
+            return;
+
         InitializeLogicalGrid();
+    }
+
+    private bool ValidateReferences()
+    {
+        bool isValid = true;
+        if (wallsTilemap == null)
+        {
+            Debug.LogError("[GridManager] Не вказано Walls Tilemap! Автовизначення розміру неможливе.");
+            isValid = false;
+        }
+        return isValid;
     }
 
     private void InitializeLogicalGrid()
     {
-        if (wallsTilemap == null)
-        {
-            Debug.LogError("[GridManager] Не вказано Walls Tilemap! Автовизначення розміру неможливе.");
-            return;
-        }
-
         wallsTilemap.CompressBounds();
         BoundsInt bounds = wallsTilemap.cellBounds;
 

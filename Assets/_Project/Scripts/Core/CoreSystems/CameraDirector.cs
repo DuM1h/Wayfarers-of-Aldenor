@@ -11,15 +11,28 @@ public class CameraDirector : MonoBehaviour
 
     private Dictionary<Character, Transform> _characterViews = new Dictionary<Character, Transform>();
 
-    private void Start()
+    public void Initialize()
     {
-        GameBootstrapper.OnGameStart += Initialize;
-    }
-
-    private void Initialize()
-    {
+        if (!ValidateReferences())
+            return;
         _turnManager = _gameBootstrapper.GetTurnManager();
         _turnManager.OnTurnStarted += HandleTurnStarted;
+    }
+
+    private bool ValidateReferences()
+    {
+        bool isValid = true;
+        if (_camera == null)
+        {
+            Debug.LogError("CameraDirector: Не призначенe посилання на Camera!");
+            isValid = false;
+        }
+        if (_gameBootstrapper == null)
+        {
+            Debug.LogError("CameraDirector: Не призначене посилання на GameBootstrapper!");
+            isValid = false;
+        }
+        return isValid;
     }
 
     public void RegisterCharacter(Character logic, Transform viewTransform)
@@ -37,7 +50,7 @@ public class CameraDirector : MonoBehaviour
 
     private void OnDestroy()
     {
-        GameBootstrapper.OnGameStart -= Initialize;
-        _turnManager.OnTurnStarted -= HandleTurnStarted;
+        if ( _turnManager != null ) 
+            _turnManager.OnTurnStarted -= HandleTurnStarted;
     }
 }

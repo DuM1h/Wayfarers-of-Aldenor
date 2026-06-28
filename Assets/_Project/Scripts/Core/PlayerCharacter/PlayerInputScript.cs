@@ -1,19 +1,20 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerInput : MonoBehaviour
+public class PlayerInputScript : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GridManager gridManager;
     [SerializeField] private PlayerControllerView _controllerView;
-    [SerializeField] private PlayerInput input;
+    [SerializeField] private PlayerInput _unityInputSystem;
 
     private Vector2Int _lastHoveredGridPos = new Vector2Int(-999, -999);
 
     void Awake()
     {
-        _controllerView = GetComponent<PlayerControllerView>();
-        input.enabled = true;
+        _controllerView ??= GetComponent<PlayerControllerView>();
+        _unityInputSystem ??= GetComponent<PlayerInput>();
+        _unityInputSystem.enabled = true;
     }
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -58,6 +59,8 @@ public class PlayerInput : MonoBehaviour
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             var targetNode = gridManager.GameGrid.GetNode(targetGridPos);
+            if (targetNode == null)
+                return;
             if (targetNode.OccupyingCharacter != null && targetNode.OccupyingCharacter != _controllerView.GetPlayerCharacter())
             {
                 _controllerView.HandleAttackInput(targetNode.OccupyingCharacter);

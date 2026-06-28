@@ -136,8 +136,11 @@ public class CharacterView : MonoBehaviour
 
     private void OnDestroy()
     {
-        _logicalCharacter.OnMoved -= ProcessStep;
-        _logicalCharacter.OnDamageTaken -= HurtAnimation;
-        _logicalCharacter.OnDied -= HandleDeath;
+        if (_logicalCharacter != null)
+        {
+            _logicalCharacter.OnMoved -= ProcessStep;
+            _logicalCharacter.OnDamageTaken -= HurtAnimation;
+            _logicalCharacter.OnDied -= HandleDeath;
+        }
     }
 }

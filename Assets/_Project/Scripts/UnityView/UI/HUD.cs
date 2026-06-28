@@ -25,13 +25,12 @@ public class HUD : MonoBehaviour
     private TurnManager _turnManager;
     private Character _playerCharacter;
 
-    private void Start()
-    {
-        GameBootstrapper.OnGameStart += Initialize;
-    }
 
     public void Initialize()
     {
+        if (!ValidateReferences())
+            return;
+
         _turnManager = _gameBootstrapper.GetTurnManager();
 
         _playerCharacter = _playerController.GetPlayerCharacter();
@@ -41,6 +40,52 @@ public class HUD : MonoBehaviour
 
         UpdateHP(_playerCharacter.CurrentHealth, _playerCharacter.MaxHealth);
         UpdatePoints();
+    }
+
+    private bool ValidateReferences()
+    {
+        bool isValid = true;
+        if (_mpTxt == null)
+        {
+            Debug.LogError("HUD: Не призначенe посилання на MpTxt!");
+            isValid = false;
+        }
+        if (_apTxt == null)
+        {
+            Debug.LogError("HUD: Не призначене посилання на ApTxt!");
+            isValid = false;
+        }
+        if (_bpTxt == null)
+        {
+            Debug.LogError("HUD: Не призначене посилання на BbTxt!");
+            isValid = false;
+        }
+        if (_hpTxt == null)
+        {
+            Debug.LogError("HUD: Не призначене посилання на HpTxt!");
+            isValid = false;
+        }
+        if (_hpImage == null)
+        {
+            Debug.LogError("HUD: Не призначенe посилання на HpImage!");
+            isValid = false;
+        }
+        if (_hpDamagedImage == null)
+        {
+            Debug.LogError("HUD: Не призначене посилання на HpDamagedImage!");
+            isValid = false;
+        }
+        if (_playerController == null)
+        {
+            Debug.LogError("HUD: Не призначене посилання на PlayerController!");
+            isValid = false;
+        }
+        if (_gameBootstrapper == null)
+        {
+            Debug.LogError("HUD: Не призначене посилання на GameBootstrapper!");
+            isValid = false;
+        }
+        return isValid;
     }
 
     void Update()
@@ -84,8 +129,6 @@ public class HUD : MonoBehaviour
 
     private void OnDestroy()
     {
-        GameBootstrapper.OnGameStart -= Initialize;
-
         if (_playerCharacter != null)
         {
             _playerCharacter.OnHealthChanged -= UpdateHP;
@@ -95,6 +138,8 @@ public class HUD : MonoBehaviour
 
     public void SkipTurn()
     {
+        if (_turnManager == null)
+            return;
         _turnManager.ForceEndTurn();
     }
 }

@@ -10,6 +10,9 @@ public class EnemyView : CharacterView
 
     protected override void Update()
     {
+        if (_logicalCharacter == null)
+            return;
+
         mp = _logicalCharacter.AvailableMovementPoints;
         ap = _logicalCharacter.AvailableActionPoints;
         bp = _logicalCharacter.AvailableBonusActions;
