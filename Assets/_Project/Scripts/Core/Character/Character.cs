@@ -22,6 +22,8 @@ public class Character
 
     public bool IsMovingVisually { get; set; } = false;
 
+    public Inventory CharacterInventory { get; protected set; }
+
     public event Action<int, int> OnHealthChanged;
     public event Action OnDamageTaken;
     public event Action OnDied;
@@ -29,7 +31,7 @@ public class Character
 
     public event Action<Vector2Int, Vector2Int> OnMoved;
 
-    public Character(string name, Vector2Int initialPosition, int maxHealth, int maxActionPoints, int maxBonusActions, int maxMovementPoints)
+    public Character(string name, Vector2Int initialPosition, int maxHealth, int maxActionPoints, int maxBonusActions, int maxMovementPoints, float maxInventoryWeight)
     {
         Name = name;
         Position = initialPosition;
@@ -40,6 +42,8 @@ public class Character
         MaxActionPoints = maxActionPoints;
         MaxBonusActions = maxBonusActions;
         MaxMovementPoints = maxMovementPoints;
+
+        CharacterInventory = new Inventory(maxInventoryWeight); 
 
         ResetTurn();
         OnResourcesChanged?.Invoke();
@@ -136,5 +140,27 @@ public class Character
 
         target.TakeDamage(50, grid);
         Debug.Log("Character attacked");
+    }
+
+    public bool TryConsumeItem(ItemConfig item)
+    {
+        if (item.type != ItemType.Consumable) return false;
+        if (IsDead) return false;
+
+        if (TurnManager.CurrentState == TurnState.Combat)
+        {
+            if (AvailableBonusActions <= 0)
+                return false;
+
+            AvailableBonusActions--;
+            OnResourcesChanged?.Invoke();
+        }
+
+        CurrentHealth = Math.Min(MaxHealth, CurrentHealth + item.healAmount);
+        OnHealthChanged?.Invoke(CurrentHealth, MaxHealth);
+
+        CharacterInventory.RemoveItem(item);
+
+        return true;
     }
 }

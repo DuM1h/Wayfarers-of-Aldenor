@@ -78,14 +78,7 @@ public class CharacterView : MonoBehaviour
     {
         GameGrid grid = _gridManager.GetGameGrid();
 
-        Vector2Int v = newPos - oldPos;
-
-        if (v == Vector2Int.right) _currentFacingDirection = CharacterFacingDirection.Right;
-        else if (v == Vector2Int.left) _currentFacingDirection = CharacterFacingDirection.Left;
-        else if (v == Vector2Int.up) _currentFacingDirection = CharacterFacingDirection.Up;
-        else if (v == Vector2Int.down) _currentFacingDirection = CharacterFacingDirection.Down;
-
-        Rotate();
+        SetFacingDirection(oldPos, newPos);
 
         _currentAnimationState = CharacterAnimationState.Walking;
 
@@ -105,6 +98,20 @@ public class CharacterView : MonoBehaviour
             _logicalCharacter.IsMovingVisually = false;
             _currentAnimationState = CharacterAnimationState.Idle;
         }
+    }
+
+    public void SetFacingDirection(Vector2Int oldPos, Vector2Int newPos)
+    {
+        Vector2Int v = newPos - oldPos;
+
+        if (v == Vector2Int.right) _currentFacingDirection = CharacterFacingDirection.Right;
+        else if (v == Vector2Int.left) _currentFacingDirection = CharacterFacingDirection.Left;
+        else if (v == Vector2Int.up) _currentFacingDirection = CharacterFacingDirection.Up;
+        else if (v == Vector2Int.down) _currentFacingDirection = CharacterFacingDirection.Down;
+
+        Rotate();
+
+        Debug.Log($"{_logicalCharacter.Name} повернувся {_currentFacingDirection}");
     }
 
     protected void Rotate()
@@ -134,7 +141,7 @@ public class CharacterView : MonoBehaviour
         _animator.SetBool("Dead", true);
     }
 
-    private void OnDestroy()
+    protected virtual void OnDestroy()
     {
         if (_logicalCharacter != null)
         {

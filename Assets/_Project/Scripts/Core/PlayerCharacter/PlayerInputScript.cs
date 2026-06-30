@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,6 +8,8 @@ public class PlayerInputScript : MonoBehaviour
     [SerializeField] private GridManager gridManager;
     [SerializeField] private PlayerControllerView _controllerView;
     [SerializeField] private PlayerInput _unityInputSystem;
+
+    private bool _isInputBlocked = false;
 
     private Vector2Int _lastHoveredGridPos = new Vector2Int(-999, -999);
 
@@ -18,6 +21,8 @@ public class PlayerInputScript : MonoBehaviour
     }
     public void OnMove(InputAction.CallbackContext context)
     {
+        if (_isInputBlocked) return;
+
         if (context.phase == InputActionPhase.Performed)
         {
             _controllerView.ClearPathPreview();
@@ -33,8 +38,15 @@ public class PlayerInputScript : MonoBehaviour
         }
     }
 
+    public void SetInputBlocked(bool isInputBlocked)
+    {
+        _isInputBlocked = isInputBlocked;
+    }
+
     void Update()
     {
+        if (_isInputBlocked) return;
+
         HandleInput();
     }
 

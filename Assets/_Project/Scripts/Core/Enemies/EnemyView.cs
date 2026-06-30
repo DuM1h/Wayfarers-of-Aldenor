@@ -3,11 +3,22 @@ using UnityEngine;
 
 public class EnemyView : CharacterView
 {
+    [Header("Animation States")]
+    [SerializeField] private CharacterFacingDirection direction;
+    [SerializeField] private CharacterAnimationState animationState;
+
     [Header("Stats")]
     [SerializeField] private int mp;
     [SerializeField] private int ap;
     [SerializeField] private int bp;
 
+    public override void Initialize(Character character, TurnManager turnManager, GridManager gridManager)
+    {
+        base.Initialize(character, turnManager, gridManager);
+
+        if (character is EnemyBrain brain)
+            brain.OnGazeDirectionChanged += SetFacingDirection;
+    }
     protected override void Update()
     {
         if (_logicalCharacter == null)
@@ -17,20 +28,10 @@ public class EnemyView : CharacterView
         ap = _logicalCharacter.AvailableActionPoints;
         bp = _logicalCharacter.AvailableBonusActions;
 
-        HandleAnimation();
+        direction = _currentFacingDirection;
+        animationState = _currentAnimationState;
 
-        if (_logicalCharacter == null) return;
-
-        HandleVisualMovement();
-
-        if (_isMovingSmoothly) return;
-
-        if (_currentPath.Count > 0)
-        {
-            Vector2Int nextStep = _currentPath.Dequeue();
-            ProcessStep(_logicalCharacter.Position ,nextStep);
-            return;
-        }
+        base.Update();
     }
 
     private void OnDrawGizmos()
@@ -64,5 +65,10 @@ public class EnemyView : CharacterView
         }
     }
 
-    
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        if (_logicalCharacter != null && _logicalCharacter is EnemyBrain brain)
+            brain.OnGazeDirectionChanged -= SetFacingDirection;
+    }
 }

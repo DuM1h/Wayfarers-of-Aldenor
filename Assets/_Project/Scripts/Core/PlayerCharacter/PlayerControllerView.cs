@@ -12,7 +12,7 @@ public class PlayerControllerView : CharacterView
 
     public void UpdatePathPreview(Vector2Int targetGridPos)
     {
-        if (_logicalCharacter == null || _isMovingSmoothly || _currentPath.Count > 0)
+        if (_logicalCharacter == null || _logicalCharacter.IsDead || _isMovingSmoothly || _currentPath.Count > 0)
         {
             ClearPathPreview();
             return;
@@ -61,7 +61,7 @@ public class PlayerControllerView : CharacterView
         if (_logicalCharacter.TryMove(targetGridPos, grid))
         {
             // 2. МЕНЕДЖМЕНТ ГРИ: Оновлюємо стани (TurnManager)
-            switch (_turnManager.CurrentState)
+            switch (TurnManager.CurrentState)
             {
                 case TurnState.FreeExploration:
                     _turnManager.TickFreeTurn();
@@ -84,7 +84,7 @@ public class PlayerControllerView : CharacterView
     {
         HandleAnimation();
 
-        if (_logicalCharacter == null) return;
+        if (_logicalCharacter == null || _logicalCharacter.IsDead) return;
 
         HandleVisualMovement();
 
@@ -120,6 +120,9 @@ public class PlayerControllerView : CharacterView
         if (distance > 1)
             Debug.Log("Ціль занадто далеко!");
         if (distance == 1)
+        {
+            SetFacingDirection(_logicalCharacter.Position, character.Position);
             _logicalCharacter.Attack(character, grid);
+        }
     }
 }

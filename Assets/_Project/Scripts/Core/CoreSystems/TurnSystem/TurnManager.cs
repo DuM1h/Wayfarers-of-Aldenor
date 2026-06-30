@@ -10,11 +10,12 @@ public enum TurnState
 
 public class TurnManager
 {
-    public TurnState CurrentState { get; private set; }
+    public static TurnState CurrentState { get; private set; }
 
     private GameGrid _gameGrid;
 
     private List<Character> _allCharacters = new List<Character>();
+    private List<EnemyBrain> _charactersInCombat = new List<EnemyBrain>();
     private Character _playerCharacter;
     private int _currentCharacterIndex = 0;
 
@@ -33,17 +34,12 @@ public class TurnManager
     public void RegisterCharacter(Character character)
     {
         if (!_allCharacters.Contains(character))
-        {
             _allCharacters.Add(character);
-        }
     }
-
     public void UnregisterCharacter(Character character) 
     {
         if (_allCharacters.Contains(character))
-        {
             _allCharacters.Remove(character);
-        }
     }
 
     public void TickFreeTurn()
@@ -107,6 +103,16 @@ public class TurnManager
 
     public void CheckAndAdvanceCombatTurn()
     {
+        if (IsCombatFinished())
+        {
+            CurrentState = TurnState.FreeExploration;
+            _currentCharacterIndex = 0;
+
+            _playerCharacter.ResetTurn();
+            Debug.Log("БІЙ ЗАВЕРШЕНО! Повернення до вільного дослідження.");
+            return;
+        }
+
         Character activeChar = _allCharacters[_currentCharacterIndex];
 
         if (activeChar.HasExhaustedTurn())
@@ -123,12 +129,29 @@ public class TurnManager
             {
                 if (enemy.TryDetectPlayer(_gameGrid))
                 {
+                    _charactersInCombat.Add(enemy);
                     EnterCombat();
                     Debug.Log("БІЙ ПОЧАТО!");
                     break;
                 }
             }
         }
+    }
+
+    private bool IsCombatFinished()
+    {
+        bool isCombatFinished = true;
+        foreach(var character in _charactersInCombat)
+        {
+            if (character.TryDetectPlayer(_gameGrid))
+            {
+                isCombatFinished = false;
+                break;
+            }
+        }
+        if (isCombatFinished)
+            _charactersInCombat.Clear();
+        return isCombatFinished;
     }
 
     public void Update(float deltaTime)
@@ -147,7 +170,7 @@ public class TurnManager
 
         if (activeChar is EnemyBrain enemy)
         {
-            enemy.ProcessTurn(_gameGrid);
+             enemy.ProcessTurn(_gameGrid);
         }
 
         CheckAndAdvanceCombatTurn();

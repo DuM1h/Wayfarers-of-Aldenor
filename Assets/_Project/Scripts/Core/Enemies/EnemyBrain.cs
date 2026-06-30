@@ -11,8 +11,11 @@ public class EnemyBrain : Character
 
     private Queue<Vector2Int> _currentPath = new Queue<Vector2Int>();
     public IReadOnlyCollection<Vector2Int> CurrentPath => _currentPath;
+
+    public event Action<Vector2Int, Vector2Int> OnGazeDirectionChanged;
+
     public EnemyBrain(string name, Vector2Int initialPosition, int maxHealth, int maxActionPoints, int maxBonusActions, int maxMovementPoints, int aggroRadius, Character playerCharacter)
-        : base(name, initialPosition, maxHealth, maxActionPoints, maxBonusActions, maxMovementPoints)
+        : base(name, initialPosition, maxHealth, maxActionPoints, maxBonusActions, maxMovementPoints, 50)
     {
         AggroRadius = aggroRadius;
         _playerCharacter = playerCharacter;
@@ -47,6 +50,7 @@ public class EnemyBrain : Character
         }
         else if (distanceToPlayer == 1)
         {
+            OnGazeDirectionChanged(Position, _playerCharacter.Position);
             Attack(_playerCharacter, grid);
             AvailableMovementPoints = 0;
             AvailableBonusActions = 0;
@@ -55,13 +59,20 @@ public class EnemyBrain : Character
 
     public bool TryDetectPlayer(GameGrid grid)
     {
+        if (_playerCharacter.IsDead || IsDead)
+        {
+            IsAggroed = false;
+            return false;
+        }
         int distanceToPlayer = grid.GetDistance(grid.GetNode(Position), grid.GetNode(_playerCharacter.Position));
 
-        if (distanceToPlayer <= AggroRadius)
+        if (distanceToPlayer <= AggroRadius || (IsAggroed && distanceToPlayer <= AggroRadius + 5))
         {
             IsAggroed = true;
             return true;
         }
+
+        IsAggroed = false;
         return false;
     }
 
