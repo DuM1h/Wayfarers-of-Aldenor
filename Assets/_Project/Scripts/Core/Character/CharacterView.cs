@@ -48,7 +48,7 @@ public class CharacterView : MonoBehaviour
 
         gridManager.UpdateNodeOccupancy(_logicalCharacter.Position, _logicalCharacter);
 
-        transform.position = _gridManager.GetCellCenterWorld(_logicalCharacter.Position);
+        transform.position = GridManager.GetCellCenterWorld(_logicalCharacter.Position);
 
         _targetGlobalPosition = transform.position;
         _logicalCharacter.OnMoved += ProcessStep;
@@ -82,7 +82,7 @@ public class CharacterView : MonoBehaviour
 
         _currentAnimationState = CharacterAnimationState.Walking;
 
-        _targetGlobalPosition = _gridManager.GetCellCenterWorld(newPos);
+        _targetGlobalPosition = GridManager.GetCellCenterWorld(newPos);
         _isMovingSmoothly = true;
         _logicalCharacter.IsMovingVisually = true;
     }

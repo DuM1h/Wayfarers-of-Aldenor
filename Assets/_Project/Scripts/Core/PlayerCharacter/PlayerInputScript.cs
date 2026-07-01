@@ -60,7 +60,7 @@ public class PlayerInputScript : MonoBehaviour
             Mathf.FloorToInt(worldPosition.y),
             0
         );
-        Vector2Int targetGridPos = gridManager.UnityToLogicalCoords(unityCoords);
+        Vector2Int targetGridPos = GridManager.UnityToLogicalCoords(unityCoords);
 
         if (targetGridPos != _lastHoveredGridPos)
         {

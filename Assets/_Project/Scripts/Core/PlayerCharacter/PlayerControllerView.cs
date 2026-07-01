@@ -4,6 +4,13 @@ using UnityEngine;
 public class PlayerControllerView : CharacterView
 {
     [SerializeField] protected LineRenderer _pathLineRenderer;
+    private LootManager _lootManager;
+
+    public void Initialize(Character character, TurnManager turnManager, GridManager gridManager, LootManager lootManager)
+    {
+        base.Initialize(character, turnManager, gridManager);
+        _lootManager = lootManager;
+    }
 
     public void SetPath(Vector2Int targetGridPos)
     {
@@ -34,12 +41,12 @@ public class PlayerControllerView : CharacterView
 
         _pathLineRenderer.positionCount = path.Count + 1;
 
-        _pathLineRenderer.SetPosition(0, _gridManager.GetCellCenterWorld(_logicalCharacter.Position));
+        _pathLineRenderer.SetPosition(0, GridManager.GetCellCenterWorld(_logicalCharacter.Position));
 
         int index = 1;
         foreach (var step in path)
         {
-            _pathLineRenderer.SetPosition(index, _gridManager.GetCellCenterWorld(step));
+            _pathLineRenderer.SetPosition(index, GridManager.GetCellCenterWorld(step));
             index++;
         }
     }
@@ -60,6 +67,7 @@ public class PlayerControllerView : CharacterView
         // (Якщо вийде, Character.cs сам викличе OnMoved, і базовий CharacterView запустить анімацію!)
         if (_logicalCharacter.TryMove(targetGridPos, grid))
         {
+            _lootManager.TryPickupLoot(_logicalCharacter.Position, _logicalCharacter.CharacterInventory);
             // 2. МЕНЕДЖМЕНТ ГРИ: Оновлюємо стани (TurnManager)
             switch (TurnManager.CurrentState)
             {

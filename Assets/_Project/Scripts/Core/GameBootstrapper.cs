@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -17,10 +18,13 @@ public class GameBootstrapper : MonoBehaviour
     [SerializeField] private Vector2Int _playerStartPosition = new Vector2Int(0, 0);
     [SerializeField] private Vector2Int _enemyStartPosition = new Vector2Int(0, 0);
     [SerializeField] private List<ItemConfig> _startItems = new List<ItemConfig>();
+    [SerializeField] private GroundLootView _lootPrefab;
 
     private Character _playerCharacter;
     private List<EnemyBrain> _enemyCharacterList = new List<EnemyBrain>();
     private TurnManager _turnManager;
+    private LootManager _lootManager;
+    private List<GroundLootView> _spawnedLootViews = new List<GroundLootView>();
 
     private bool _isInitialized = false;
 
@@ -35,12 +39,30 @@ public class GameBootstrapper : MonoBehaviour
 
         // 2. Ініціалізуємо логічний менеджер ходів
         _turnManager = new TurnManager(_playerCharacter, _gridManager.GetGameGrid());
+        _lootManager = new LootManager();
+        _lootManager.OnLootSpawned += (logicalLoot) => {
+            Vector3 lootCords = GridManager.LogicalToUnityCoords(logicalLoot.Coordinates);
+            GroundLootView view = Instantiate(_lootPrefab, lootCords, Quaternion.identity);
+            view.Initialize(logicalLoot, lootCords);
+            _spawnedLootViews.Add(view);
+        };
+        _lootManager.OnLootRemoved += (coords) => {
+            var view = _spawnedLootViews.Find(v => v.GridCoordinates == coords);
+            if (view != null)
+            {
+                Destroy(view.gameObject);
+                _spawnedLootViews.Remove(view);
+            }
+        };
+
+        // Спавним тестову моркву на клітинці (7, 3)
+        _lootManager.SpawnLoot(new Vector2Int(7, 3), _startItems[3], 3);
 
         // Поки що ми стартуємо у вільному режимі, тому ресурси не лімітовані, 
         // але TurnManager вже готовий перевести гру в бій.
 
         // 3. Зв'язуємо Логіку та Візуал (Передаємо POCO класи у MonoBehaviour)
-        _playerView.Initialize(_playerCharacter, _turnManager, _gridManager);
+        _playerView.Initialize(_playerCharacter, _turnManager, _gridManager, _lootManager);
         _cameraDirector.RegisterCharacter(_playerCharacter, _playerView.GetComponent<Transform>());
 
         EnemyView[] enemyViews = FindObjectsByType<EnemyView>();
@@ -56,7 +78,7 @@ public class GameBootstrapper : MonoBehaviour
         _inventoryView.Initialize(_playerCharacter.CharacterInventory);
 
         foreach(var item in _startItems)
-            _playerCharacter.CharacterInventory.TryAddItem(item);
+            _playerCharacter.CharacterInventory.TryAddItem(item, 1);
 
         Debug.Log("<color=green>Системи успішно ініціалізовані! Можна тестувати рух.</color>");
         _isInitialized = true;

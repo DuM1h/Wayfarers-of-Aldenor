@@ -46,12 +46,12 @@ public class EnemyView : CharacterView
             Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
 
             // Починаємо малювати лінію від поточної логічної позиції ворога
-            Vector3 previousPosition = _gridManager.GetCellCenterWorld(_logicalCharacter.Position);
+            Vector3 previousPosition = GridManager.GetCellCenterWorld(_logicalCharacter.Position);
 
             foreach (Vector2Int gridPos in path)
             {
                 // Перетворюємо логічну координату у фізичну
-                Vector3 targetPosition = _gridManager.GetCellCenterWorld(gridPos);
+                Vector3 targetPosition = GridManager.GetCellCenterWorld(gridPos);
 
                 // Малюємо маленьку сферу на кожній клітинці шляху
                 Gizmos.DrawSphere(targetPosition, 0.15f);

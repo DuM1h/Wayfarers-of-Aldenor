@@ -18,17 +18,38 @@ public class Inventory
         MaxWeight = maxWeight;
     }
 
-    public bool TryAddItem (ItemConfig item)
+    public bool TryAddItem (ItemConfig item, int amount)
     {
         if (item == null) return false;
         if (CurrentWeight + item.weight > MaxWeight) return false;
 
-        if (_allItems.ContainsKey(item) && item.isStackable)
-            _allItems[item]++;
+        if (amount == 1)
+        {
+            if (_allItems.ContainsKey(item))
+                _allItems[item]++;
+            else
+                _allItems.Add(item, 1);
+        }
+        else if (CurrentWeight + item.weight * amount <= MaxWeight)
+        {
+            if (_allItems.ContainsKey(item))
+                _allItems[item] += amount;
+            else
+                _allItems.Add(item, amount);
+        }
         else
-            _allItems.Add(item, 1);
-
-        CurrentWeight += item.weight;
+        {
+            int leftAmount = amount;
+            do
+            {
+                if (_allItems.ContainsKey(item))
+                    _allItems[item]++;
+                else
+                    _allItems.Add(item, 1);
+                leftAmount--;
+            } while (CurrentWeight + item.weight > MaxWeight && leftAmount > 0);
+        }
+        CurrentWeight += item.weight * amount;
         OnInventoryChanged?.Invoke(item, true);
         Debug.Log($"Предмет {item.name} додано");
         return true;

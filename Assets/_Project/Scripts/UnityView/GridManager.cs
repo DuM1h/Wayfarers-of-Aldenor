@@ -6,7 +6,7 @@ public class GridManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private Tilemap wallsTilemap;
 
-    private Vector3Int _tilemapOriginOffset;
+    private static Vector3Int _tilemapOriginOffset;
     private int _computedWidth;
     private int _computedHeight;
 
@@ -79,7 +79,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    public Vector3Int LogicalToUnityCoords(Vector2Int logicalCoords)
+    public static Vector3Int LogicalToUnityCoords(Vector2Int logicalCoords)
     {
         return new Vector3Int(
             logicalCoords.x + _tilemapOriginOffset.x,
@@ -88,7 +88,7 @@ public class GridManager : MonoBehaviour
         );
     }
 
-    public Vector2Int UnityToLogicalCoords(Vector3Int unityCoords)
+    public static Vector2Int UnityToLogicalCoords(Vector3Int unityCoords)
     {
         return new Vector2Int(
             unityCoords.x - _tilemapOriginOffset.x,
@@ -96,7 +96,7 @@ public class GridManager : MonoBehaviour
         );
     }
 
-    public Vector3 GetCellCenterWorld(Vector2Int logicalCoords)
+    public static Vector3 GetCellCenterWorld(Vector2Int logicalCoords)
     {
         Vector3Int unityCoords = LogicalToUnityCoords(logicalCoords);
         return new Vector3(unityCoords.x + 0.5f, unityCoords.y + 0.5f, 0f);
