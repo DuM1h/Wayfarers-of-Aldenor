@@ -9,11 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c409250ea87bded4fa57694343d1ccb5, type: 3}
+  m_Script: {fileID: 11500000, guid: 72db8322b9decba438d8dc1f5593cc8e, type: 3}
   m_Name: Hood
-  m_EditorClassIdentifier: Assembly-CSharp::ItemConfig
-  itemName: Hood
-  description: Description
-  weight: 3
-  sprite: {fileID: 21300000, guid: 5cd7f51d3b215364ebf78394f1dde585, type: 2}
-  type: 1
+  m_EditorClassIdentifier: Assembly-CSharp::EquipmentConfig
+  _id: e0002
+  _itemName: Hood
+  _description: Hide from son and people
+  _weight: 3
+  _icon: {fileID: 21300000, guid: 5cd7f51d3b215364ebf78394f1dde585, type: 2}
+  _slotType: 2
+  _armorBonus: 2
+  _damageBonus: 0

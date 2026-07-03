@@ -36,9 +36,9 @@ public class HUD : MonoBehaviour
         _playerCharacter = _playerController.GetPlayerCharacter();
 
         _playerCharacter.OnResourcesChanged += UpdatePoints;
-        _playerCharacter.OnHealthChanged += UpdateHP;
+        _playerCharacter.Stats.OnHealthChanged += UpdateHP;
 
-        UpdateHP(_playerCharacter.CurrentHealth, _playerCharacter.MaxHealth);
+        UpdateHP(_playerCharacter.Stats.CurrentHealth, _playerCharacter.Stats.MaxHealth);
         UpdatePoints();
     }
 
@@ -107,7 +107,7 @@ public class HUD : MonoBehaviour
     {
         if (_playerCharacter == null) return;
 
-        _hpTxt.text = $"{_playerCharacter.CurrentHealth}/{_playerCharacter.MaxHealth}";
+        _hpTxt.text = $"{_playerCharacter.Stats.CurrentHealth}/{_playerCharacter.Stats.MaxHealth}";
 
         targetHealthFill = (float)newHealth / (float)maxHealth;
         _hpImage.fillAmount = (float)newHealth / (float)maxHealth;
@@ -131,7 +131,7 @@ public class HUD : MonoBehaviour
     {
         if (_playerCharacter != null)
         {
-            _playerCharacter.OnHealthChanged -= UpdateHP;
+            _playerCharacter.Stats.OnHealthChanged -= UpdateHP;
             _playerCharacter.OnResourcesChanged -= UpdatePoints;
         }
     }
