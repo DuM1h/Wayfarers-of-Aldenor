@@ -11,6 +11,7 @@ public class GameBootstrapper : MonoBehaviour
     [SerializeField] private InventoryView _inventoryView;
     [SerializeField] private PlayerInputScript _playerInput;
     [SerializeField] private EquipmentPanelView _equipmentPanelView;
+    [SerializeField] private CharacterStatsView _characterStatsView;
 
     [Header("Test Settings")]
     [SerializeField] private Vector2Int _playerStartPosition = new Vector2Int(0, 0);
@@ -110,6 +111,7 @@ public class GameBootstrapper : MonoBehaviour
         _inventoryView.OnItemClicked += HandleInventoryItemClicked;
 
         _equipmentPanelView.Init(_playerCharacter);
+        _characterStatsView.Init(_playerCharacter.Stats);
     }
 
     private void HandleInventoryItemClicked(ItemConfig item)

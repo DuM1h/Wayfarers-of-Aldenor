@@ -3,6 +3,7 @@ using UnityEngine;
 public class CharacterStats
 {
     public event Action<int, int> OnHealthChanged;
+    public event Action OnStatsChanged;
     public event Action OnDamageTaken;
     public event Action OnDied;
 
@@ -18,6 +19,9 @@ public class CharacterStats
 
     private int _equippedArmorBonus = 0;
     private int _equippedDamageBonus = 0;
+
+    public int EquippedArmorBonus => _equippedArmorBonus;
+    public int EquippedDamageBonus => _equippedDamageBonus;
 
     public CharacterStats(int maxHealth, int currentHealth, int armor, int baseDamage, float maxWeight)
     {
@@ -58,5 +62,6 @@ public class CharacterStats
     {
         _equippedArmorBonus = armorBonus;
         _equippedDamageBonus = damageBonus;
+        OnStatsChanged?.Invoke();
     }
 }
