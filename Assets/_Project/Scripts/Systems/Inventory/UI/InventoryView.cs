@@ -13,6 +13,7 @@ public class InventoryView : MonoBehaviour
 
     private Inventory _logicalInventory;
     private List<InventorySlot> _spawnedSlots = new List<InventorySlot>();
+    private ItemConfig _hoveredItem;
 
     public event Action<bool> OnInventoryToggled;
     public event Action<ItemConfig> OnItemClicked;
@@ -42,7 +43,17 @@ public class InventoryView : MonoBehaviour
         {
             UpdateWeightText();
         }
-        RebuildSlots();
+
+        int newAmount = 0;
+        bool shouldKeepTooltip = !wasAdded && item == _hoveredItem && item.isStackable
+            && _logicalInventory.AllItems.TryGetValue(item, out newAmount);
+
+        RebuildSlots(!shouldKeepTooltip);
+
+        if (shouldKeepTooltip)
+        {
+            _tooltipView.ShowTooltip(item, newAmount);
+        }
     }
 
     private void UpdateWeightText()
@@ -51,15 +62,19 @@ public class InventoryView : MonoBehaviour
         _inventoryWeightText.text = $"Weight: {_logicalInventory.TotalWeight:F1}/{_logicalInventory.MaxWeight:F1}";
     }
 
-    private void RebuildSlots()
+    private void RebuildSlots(bool hideTooltip = true)
     {
         if (_logicalInventory == null) return;
 
+        if (hideTooltip)
+        {
+            _tooltipView.HideTooltip();
+            _hoveredItem = null;
+        }
+
         foreach (var slot in _spawnedSlots)
         {
-            slot.OnSlotClicked -= OnItemClicked;
-            slot.OnHoverEnter -= _tooltipView.ShowTooltip;
-            slot.OnHoverExit -= _tooltipView.HideTooltip;
+            UnsubscribeSlot(slot);
             Destroy(slot.gameObject);
         }
         _spawnedSlots.Clear();
@@ -74,9 +89,7 @@ public class InventoryView : MonoBehaviour
                 for (int i = 0; i < amount; i++)
                 {
                     InventorySlot newSlot = Instantiate(_slotPrefab, _gridContainer);
-                    newSlot.OnSlotClicked += OnItemClicked;
-                    newSlot.OnHoverEnter += _tooltipView.ShowTooltip;
-                    newSlot.OnHoverExit += _tooltipView.HideTooltip;
+                    SubscribeSlot(newSlot);
                     newSlot.Setup(item, 1);
                     _spawnedSlots.Add(newSlot);
                 }
@@ -84,19 +97,50 @@ public class InventoryView : MonoBehaviour
             else
             {
                 InventorySlot newSlot = Instantiate(_slotPrefab, _gridContainer);
-                newSlot.OnSlotClicked += OnItemClicked;
-                newSlot.OnHoverEnter += _tooltipView.ShowTooltip;
-                newSlot.OnHoverExit += _tooltipView.HideTooltip;
+                SubscribeSlot(newSlot);
                 newSlot.Setup(item, amount);
                 _spawnedSlots.Add(newSlot);
             }
         }
     }
 
+    private void SubscribeSlot(InventorySlot slot)
+    {
+        slot.OnSlotClicked += HandleSlotClicked;
+        slot.OnHoverEnter += HandleHoverEnter;
+        slot.OnHoverExit += HandleHoverExit;
+    }
+
+    private void UnsubscribeSlot(InventorySlot slot)
+    {
+        slot.OnSlotClicked -= HandleSlotClicked;
+        slot.OnHoverEnter -= HandleHoverEnter;
+        slot.OnHoverExit -= HandleHoverExit;
+    }
+
+    private void HandleSlotClicked(ItemConfig item)
+    {
+        OnItemClicked?.Invoke(item);
+    }
+
+    private void HandleHoverEnter(ItemConfig item, int amount)
+    {
+        _hoveredItem = item;
+        _tooltipView.ShowTooltip(item, amount);
+    }
+
+    private void HandleHoverExit()
+    {
+        _hoveredItem = null;
+        _tooltipView.HideTooltip();
+    }
+
     public void ToggleInventory()
     {
         bool isActive = !_canvas.enabled;
         _canvas.enabled = isActive;
+        _tooltipView.HideTooltip();
+        _hoveredItem = null;
 
         OnInventoryToggled?.Invoke(isActive);
 
